@@ -1,0 +1,121 @@
+Import socket
+
+Import threading
+
+Import tkinter as tk
+
+From tkinter import simpledialog, scrolledtext
+
+
+
+Class ChatClient:
+
+    Def __init__(self, host, port):
+
+        Self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        Self.client_socket.connect((host, port))
+
+        Self.username = None
+
+
+
+    Def receive_messages(self):
+
+        While True:
+
+            Try:
+
+                Message = self.client_socket.recv(1024).decode(‘utf-8’)
+
+                If message:
+
+                    App.display_message(message)
+
+            Except:
+
+                Print(“An error occurred!”)
+
+                Self.client_socket.close()
+
+                Break
+
+
+
+    Def send_message(self, message):
+
+        Self.client_socket.send(message.encode(‘utf-8’))
+
+
+
+Class ChatApp:
+
+    Def __init__(self, root):
+
+        Self.root = root
+
+        Self.root.title(“Chat Application”)
+
+        
+
+        Self.chat_area = scrolledtext.ScrolledText(root, state=’disabled’)
+
+        Self.chat_area.pack(padx=10, pady=10)
+
+
+
+        Self.message_entry = tk.Entry(root)
+
+        Self.message_entry.pack(padx=10, pady=10, fill=tk.X)
+
+        Self.message_entry.bind(“<Return>”, self.send_message)
+
+
+
+        Self.username = simpledialog.askstring(“Username”, “Enter your username:”)
+
+        Self.client = ChatClient(‘127.0.0.1’, 12345)
+
+        Self.client.username = self.username
+
+
+
+        Threading.Thread(target=self.client.receive_messages, daemon=True).start()
+
+
+
+    Def send_message(self, event=None):
+
+        Message = self.message_entry.get()
+
+        If message:
+
+            Full_message = f”{self.client.username}: {message}”
+
+            Self.client.send_message(full_message)
+
+            Self.display_message(full_message)
+
+            Self.message_entry.delete(0, tk.END)
+
+
+
+    Def display_message(self, message):
+
+        Self.chat_area.config(state=’normal’)
+
+        Self.chat_area.insert(tk.END, message + ‘\n’)
+
+        Self.chat_area.config(state=’disabled’)
+
+        Self.chat_area.yview(tk.END)
+
+
+
+If __name__ == “__main__”:
+
+    Root = tk.Tk()
+
+    App = ChatApp(root)
+
+    Root.mainloop()
